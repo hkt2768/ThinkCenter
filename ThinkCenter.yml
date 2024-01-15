@@ -1,0 +1,70 @@
+version: '3'
+
+services:
+#  DB 서버
+  ThinkCenter-DB:
+    image: 'bitnami/postgresql:12'
+    ports:
+      - "9101:5432"
+    volumes:
+      - '/opt/ThinkCenter/postgres:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_USERNAME=hkt2768
+      - POSTGRESQL_PASSWORD=Giteak9079!@
+      - POSTGRESQL_DATABASE=Giteak9079!@
+      - POSTGRESQL_TIMEZONE=Asia/Seoul
+      - POSTGRESQL_LOG_TIMEZONE=Asia/Seoul
+    restart: unless-stopped
+    networks:
+      - ThinkCenter
+# 프론트 엔드(웹) 서버
+  ThinkCenter-WEB:
+    image: 'node:latest'
+    ports:
+      - "9102:80"
+    volumes:
+      - '/opt/ThinkCenter/web:/opt/web'
+      - '/storage/ThinkCenter/upload:/storage/ThinkCenter/upload'
+    restart: unless-stopped
+    networks:
+      - ThinkCenter
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - ThinkCenter-FILE
+      - ThinkCenter-DB
+      - ThinkCenter-API
+# 파일 업로드/다운로드 서버
+  ThinkCenter-FILE:
+    image: 'node:latest'
+    ports:
+      - "9103:80"
+    volumes:
+      - '/opt/ThinkCenter/file:/opt/file'
+      - '/storage/ThinkCenter/upload:/storage/ThinkCenter/upload'
+    restart: unless-stopped
+    networks:
+      - ThinkCenter
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - ThinkCenter-DB
+# API 서버
+  ThinkCenter-API:
+    image: 'node:latest'
+    ports:
+      - "9104:80"
+    volumes:
+      - '/opt/ThinkCenter/api:/opt/api'
+      - '/storage/ThinkCenter/upload:/storage/ThinkCenter/upload'
+    restart: unless-stopped
+    networks:
+      - ThinkCenter
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - ThinkCenter-FILE
+      - ThinkCenter-DB
+networks:
+  ThinkCenter:
+    external: true
